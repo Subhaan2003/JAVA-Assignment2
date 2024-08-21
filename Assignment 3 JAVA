@@ -1,0 +1,120 @@
+import java.util.Random;
+import java.util.Scanner;
+
+public class CricketScoreBoard{
+
+
+     static class Player {
+        String name;
+        int runsScored = 0;
+        int ballsFaced = 0;
+        boolean isOut = false;
+
+        public Player(String name) {
+            this.name = name;
+        }
+
+        public double getStrikeRate() {
+            return ballsFaced == 0 ? 0 : (runsScored / (double) ballsFaced) * 100;
+        }
+    }
+
+    static class Team {
+        String name;
+        Player[] players = new Player[11];
+        int totalRuns = 0;
+        int wicketsFallen = 0;
+        int oversBowled = 0;
+
+        public Team(String name, String[] playerNames) {
+            this.name = name;
+            for (int i = 0; i < 11; i++) {
+                players[i] = new Player(playerNames[i]);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        // User input for team names
+        System.out.println("Enter name of Team 1:");
+        String team1Name = scanner.nextLine();
+        System.out.println("Enter name of Team 2:");
+        String team2Name = scanner.nextLine();
+
+        // Simulate a toss
+        Random rand = new Random();
+        int team1BatsFirst = rand.nextInt();
+        System.out.println("Toss result: " + (team1BatsFirst==1 ? team1Name : team2Name) + " will bat first.");
+
+        // Create teams
+        String[] team1Players = getPlayerNames(scanner, team1Name);
+        String[] team2Players = getPlayerNames(scanner, team2Name);
+        Team team1 = new Team(team1Name, team1Players);
+        Team team2 = new Team(team2Name, team2Players);
+
+        // Simulate the innings
+        simulateInnings(scanner, team1);
+        simulateInnings(scanner, team2);
+
+        // Display the scorecard and determine the winner
+        displayScorecard(team1);
+        displayScorecard(team2);
+        determineWinner(team1, team2);
+    }
+
+    public static String[] getPlayerNames(Scanner scanner, String teamName) {
+        String[] playerNames = new String[11];
+        System.out.println("Enter names of 11 players for " + teamName + ":");
+        for (int i = 0; i < 11; i++) {
+            playerNames[i] = scanner.nextLine();
+        }
+        return playerNames;
+    }
+
+    public static void simulateInnings(Scanner scanner, Team team) {
+        Random rand = new Random();
+        int balls = 0;
+        while (team.oversBowled < 20 && team.wicketsFallen < 10) {
+            int runs = rand.nextInt(8);  // simulate runs [0-7]
+            if (runs == 5) runs = 0;
+
+            Player striker = team.players[team.wicketsFallen];
+            striker.runsScored += runs;
+            striker.ballsFaced++;
+            team.totalRuns += runs;
+            balls++;
+
+            if (balls == 6) {
+                team.oversBowled++;
+                balls = 0;
+            }
+
+            if (rand.nextInt(10) <3) {  // simulate wicket fall with 30% probability
+                striker.isOut = true;
+                team.wicketsFallen++;
+            }
+
+            System.out.println("Ball " + (team.oversBowled + "." + balls) + ": " + (runs == 0 ? "Dot ball" : runs + " runs") + " -> " + (striker.isOut ? "Wicket!" : ""));
+        }
+    }
+
+    public static void displayScorecard(Team team) {
+        System.out.println("Scorecard for " + team.name + ":");
+        for (Player player : team.players) {
+            System.out.printf("%s | %s | %d runs | %d balls | Strike Rate: %.2f\n", player.name, player.isOut ? "Out" : "Not Out", player.runsScored, player.ballsFaced, player.getStrikeRate());
+        }
+        System.out.printf("Total score: %d/%d in %d overs\n", team.totalRuns, team.wicketsFallen, team.oversBowled);
+    }
+
+    public static void determineWinner(Team team1, Team team2) {
+        if (team1.totalRuns > team2.totalRuns) {
+            System.out.println(team1.name + " wins!");
+        } else if (team2.totalRuns > team1.totalRuns) {
+            System.out.println(team2.name + " wins!");
+        } else {
+            System.out.println("Match is a tie!");
+        }
+    }
+}
